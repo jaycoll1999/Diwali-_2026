@@ -21,8 +21,6 @@
     background:radial-gradient(ellipse at 50% 100%,var(--plum),var(--night) 70%);
     overflow-x:hidden;
   }
-  /* Optional background video: put video.mp4 next to index.html */
-  #bg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.55}
   .shade{position:fixed;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(20,11,46,.55),rgba(20,11,46,.85))}
   canvas{position:fixed;inset:0;z-index:2;pointer-events:none}
   main{
@@ -40,13 +38,30 @@
   .to{font-family:'Yatra One',serif;font-size:clamp(1.4rem,5vw,2.2rem);color:var(--rani)}
   .msg{max-width:34rem;font-size:clamp(1rem,3.6vw,1.2rem);line-height:1.7;animation:rise 1.4s .6s cubic-bezier(.2,.8,.2,1) both}
   .from{font-weight:600;color:var(--marigold)}
+  
+  .actions{
+    display:flex;gap:.85rem;flex-wrap:wrap;justify-content:center;align-items:center;
+    animation:rise 1.4s .85s cubic-bezier(.2,.8,.2,1) both;
+  }
   button{
     font:inherit;font-weight:600;cursor:pointer;color:var(--night);
     background:var(--marigold);border:0;border-radius:999px;padding:.75rem 1.6rem;
-    box-shadow:0 0 0 0 rgba(255,182,39,.6);
+    box-shadow:0 0 16px rgba(255,182,39,.4);
+    transition:transform .2s,background .2s,box-shadow .2s;
   }
-  button:hover{background:#ffc552}
+  button:hover{background:#ffc552;transform:translateY(-2px);box-shadow:0 0 24px rgba(255,182,39,.7)}
   button:focus-visible{outline:3px solid var(--ivory);outline-offset:3px}
+  
+  .btn-video{
+    background:linear-gradient(135deg, var(--rani), #ba1b54);
+    color:var(--ivory);
+    box-shadow:0 0 16px rgba(228,69,122,.45);
+  }
+  .btn-video:hover{
+    background:linear-gradient(135deg, #f0558b, #cc2360);
+    box-shadow:0 0 24px rgba(228,69,122,.75);
+  }
+
   @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 
   /* Diyas */
@@ -79,14 +94,145 @@
     *{animation:none!important;transition:none!important}
     .flame{transform:translateX(-50%) scale(1)}
   }
+
+  /* Video Modal Overlay */
+  .video-modal{
+    position:fixed;inset:0;z-index:100;
+    display:flex;align-items:center;justify-content:center;
+    padding:1rem;
+    opacity:0;pointer-events:none;
+    visibility:hidden;
+    transition:opacity .45s ease,visibility .45s ease;
+  }
+  .video-modal.active{
+    opacity:1;pointer-events:auto;visibility:visible;
+  }
+  .video-backdrop{
+    position:absolute;inset:0;
+    background:radial-gradient(circle at center, rgba(42,18,80,.9), rgba(20,11,46,.96));
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  }
+  .video-card{
+    position:relative;z-index:2;
+    width:100%;max-width:min(90vw, 380px);
+    background:#0b0517;
+    border:2px solid rgba(255,182,39,.65);
+    border-radius:20px;
+    box-shadow:0 0 35px rgba(255,182,39,.45), 0 0 70px rgba(228,69,122,.3), 0 25px 50px rgba(0,0,0,.8);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    transform:scale(.92) translateY(15px);
+    transition:transform .45s cubic-bezier(.16,1,.3,1);
+  }
+  .video-modal.active .video-card{
+    transform:scale(1) translateY(0);
+  }
+  .video-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:.65rem 1rem;
+    background:linear-gradient(to bottom, rgba(42,18,80,.95), rgba(20,11,46,.85));
+    border-bottom:1px solid rgba(255,182,39,.25);
+  }
+  .video-title{
+    font-family:'Mukta',sans-serif;font-weight:600;font-size:.95rem;
+    color:var(--marigold);letter-spacing:.5px;
+  }
+  .close-btn{
+    background:rgba(255,255,255,.12);color:var(--ivory);
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:50%;width:30px;height:30px;
+    padding:0;display:inline-flex;align-items:center;justify-content:center;
+    font-size:.95rem;line-height:1;transition:background .2s,transform .2s;
+  }
+  .close-btn:hover{background:var(--rani);transform:scale(1.08)}
+  
+  .video-wrapper{
+    position:relative;width:100%;
+    aspect-ratio:9/16;max-height:min(72vh, 600px);
+    background:#000;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .video-wrapper video{
+    width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;
+  }
+
+  /* Tap to unmute floating pill */
+  .unmute-prompt{
+    position:absolute;top:1rem;left:50%;transform:translateX(-50%);
+    background:rgba(20,11,46,.92);color:var(--marigold);
+    border:1.5px solid var(--marigold);border-radius:999px;
+    padding:.5rem 1.1rem;font-size:.85rem;font-weight:600;
+    display:none;align-items:center;gap:.45rem;
+    box-shadow:0 0 20px rgba(255,182,39,.7);
+    cursor:pointer;z-index:10;
+    animation:pulse-btn 1.5s infinite;
+  }
+  @keyframes pulse-btn{
+    0%,100%{transform:translateX(-50%) scale(1);box-shadow:0 0 14px rgba(255,182,39,.5)}
+    50%{transform:translateX(-50%) scale(1.06);box-shadow:0 0 26px rgba(255,182,39,.9)}
+  }
+
+  /* Video End Screen Overlay */
+  .video-end-overlay{
+    position:absolute;inset:0;
+    background:rgba(20,11,46,.94);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:1.5rem;text-align:center;gap:.75rem;
+    opacity:0;pointer-events:none;transition:opacity .4s ease;
+    z-index:8;backdrop-filter:blur(5px);
+  }
+  .video-end-overlay.visible{
+    opacity:1;pointer-events:auto;
+  }
+  .end-diya{font-size:2.8rem;animation:flicker 1.6s ease-in-out infinite alternate}
+  .video-end-overlay h3{
+    font-family:'Yatra One',serif;font-weight:400;font-size:1.9rem;
+    color:var(--marigold);text-shadow:0 0 20px rgba(255,182,39,.4);
+  }
+  .end-wish{font-size:.95rem;color:var(--ivory);max-width:240px;line-height:1.5}
+  .end-actions{display:flex;gap:.6rem;flex-direction:column;width:100%;max-width:220px;margin-top:.4rem}
+  .btn-replay{
+    background:var(--marigold);color:var(--night);padding:.6rem 1rem;
+    border-radius:999px;font-weight:600;font-size:.9rem;
+  }
+  .btn-replay:hover{background:#ffc552}
+  .btn-back{
+    background:transparent;color:var(--ivory);border:1px solid rgba(255,255,255,.3);
+    padding:.6rem 1rem;border-radius:999px;font-weight:600;font-size:.9rem;
+  }
+  .btn-back:hover{background:rgba(255,255,255,.12);border-color:var(--ivory)}
+
+  /* Video controls bar */
+  .video-controls{
+    display:flex;align-items:center;gap:.6rem;
+    padding:.6rem .9rem;
+    background:linear-gradient(to top, rgba(15,7,30,.98), rgba(20,11,46,.85));
+    border-top:1px solid rgba(255,182,39,.2);
+  }
+  .ctrl-btn{
+    background:transparent;border:0;color:var(--ivory);
+    padding:.35rem .45rem;border-radius:6px;font-size:1rem;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:color .2s,background .2s;box-shadow:none;
+  }
+  .ctrl-btn:hover{color:var(--marigold);background:rgba(255,255,255,.08);transform:none}
+  .progress-container{
+    flex:1;height:5px;background:rgba(255,255,255,.2);
+    border-radius:999px;cursor:pointer;position:relative;overflow:hidden;
+  }
+  .progress-bar{
+    height:100%;width:0%;
+    background:linear-gradient(to right, var(--rani), var(--marigold));
+    border-radius:999px;transition:width .1s linear;
+  }
+  .time-display{
+    font-size:.75rem;color:rgba(255,244,220,.75);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
 </style>
 </head>
 <body>
 
-<!-- Optional video background. Add a file named video.mp4 in the same folder. -->
-<video id="bg" autoplay muted loop playsinline aria-hidden="true">
-  <source src="video.mp4" type="video/mp4">
-</video>
 <div class="shade"></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 
@@ -96,15 +242,64 @@
   <p class="sub">Happy Diwali!</p>
   <p class="to" id="to"></p>
   <p class="msg" id="msg"></p>
-  <button id="burst" type="button">Light up the sky</button>
+  <div class="actions">
+    <button id="burst" type="button">Light up the sky ✨</button>
+    <button id="watchBtn" type="button" class="btn-video">🎬 Watch Video Clip</button>
+  </div>
 </main>
+
+<!-- Special Diwali Video Modal -->
+<div id="videoModal" class="video-modal" aria-hidden="true">
+  <div class="video-backdrop" id="videoBackdrop"></div>
+  <div class="video-card">
+    <div class="video-header">
+      <span class="video-title">🪔 Special Diwali Clip ✨</span>
+      <button id="closeVideoBtn" class="close-btn" type="button" aria-label="Close video">✕</button>
+    </div>
+    
+    <div class="video-wrapper">
+      <video id="diwaliClip" playsinline webkit-playsinline preload="auto">
+        <source src="diwali-clip.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+
+      <!-- Tap to unmute prompt -->
+      <button id="unmutePrompt" class="unmute-prompt" type="button">
+        <span>🔊</span> Tap for Sound
+      </button>
+
+      <!-- End screen overlay -->
+      <div id="videoEndOverlay" class="video-end-overlay">
+        <div class="end-diya">🪔</div>
+        <h3 id="endHeading">शुभ दीपावली!</h3>
+        <p class="end-wish" id="endWish">Wishing you and your family joy, light & prosperity!</p>
+        <p id="endFrom" style="color:var(--marigold);font-weight:600;font-size:1.05rem;margin-top:-0.2rem;">— Jaypal</p>
+        <div class="end-actions">
+          <button id="replayBtn" type="button" class="btn-replay">🔄 Watch Again</button>
+          <button id="backToGreetingBtn" type="button" class="btn-back">🪔 View Wishes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom video controls -->
+    <div class="video-controls">
+      <button id="playPauseBtn" class="ctrl-btn" type="button" aria-label="Play/Pause">⏸</button>
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <span class="time-display" id="timeDisplay">0:00 / 0:17</span>
+      <button id="muteBtn" class="ctrl-btn" type="button" aria-label="Mute/Unmute">🔊</button>
+      <button id="fullscreenBtn" class="ctrl-btn" type="button" aria-label="Fullscreen">⛶</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ===== EDIT THESE ===== */
 const DEFAULT_MESSAGE =
   "May the light of the diya fill your home with happiness, your heart with peace, " +
   "and your year with success. Wishing you and your family a bright and joyful Diwali!";
-const DEFAULT_FROM = "Your Name";   // change to your name
+const DEFAULT_FROM = "Jaypal";   // change to your name
 /* Personalised link example:  https://your-site.vercel.app/?name=Rahul&from=Amit */
 /* ====================== */
 
@@ -124,10 +319,10 @@ msgEl.appendChild(document.createElement('br'));
 msgEl.appendChild(sig);
 document.title = name ? 'Happy Diwali, ' + name + '! 🪔' : 'Happy Diwali 🪔';
 
-/* Hide video block if the file is missing */
-const bg = document.getElementById('bg');
-bg.addEventListener('error', () => bg.style.display = 'none', true);
-bg.querySelector('source').addEventListener('error', () => bg.style.display = 'none');
+const endWish = document.getElementById('endWish');
+if (name) endWish.textContent = `Wishing you and your family joy, light & prosperity, ${name}!`;
+const endFrom = document.getElementById('endFrom');
+if (endFrom) endFrom.textContent = '— ' + from;
 
 /* Diyas light up one by one on load */
 const diyas = document.getElementById('diyas');
@@ -172,8 +367,173 @@ function show(){
     setTimeout(() => boom(W*(.15+Math.random()*.7), H*(.12+Math.random()*.4)), i*350);
 }
 document.getElementById('burst').addEventListener('click', show);
-addEventListener('pointerdown', e => { if (e.target.tagName !== 'BUTTON') boom(e.clientX, e.clientY); });
+addEventListener('pointerdown', e => { 
+  if (e.target.tagName !== 'BUTTON' && !e.target.closest('#videoModal')) {
+    boom(e.clientX, e.clientY);
+  }
+});
 if (!reduce) setTimeout(show, 2800);
+
+/* ========================================================
+   DIWALI CLIP VIDEO PLAYER (Plays after wishes complete)
+   ======================================================== */
+const videoModal = document.getElementById('videoModal');
+const diwaliClip = document.getElementById('diwaliClip');
+const unmutePrompt = document.getElementById('unmutePrompt');
+const videoEndOverlay = document.getElementById('videoEndOverlay');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const muteBtn = document.getElementById('muteBtn');
+const progressBar = document.getElementById('progressBar');
+const progressContainer = document.getElementById('progressContainer');
+const timeDisplay = document.getElementById('timeDisplay');
+const closeVideoBtn = document.getElementById('closeVideoBtn');
+const videoBackdrop = document.getElementById('videoBackdrop');
+const watchBtn = document.getElementById('watchBtn');
+const replayBtn = document.getElementById('replayBtn');
+const backToGreetingBtn = document.getElementById('backToGreetingBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+function openAndPlayVideo() {
+  videoModal.classList.add('active');
+  videoModal.setAttribute('aria-hidden', 'false');
+  videoEndOverlay.classList.remove('visible');
+  
+  diwaliClip.currentTime = 0;
+  
+  // Try unmuted playback first
+  diwaliClip.muted = false;
+  const playPromise = diwaliClip.play();
+  
+  if (playPromise !== undefined) {
+    playPromise.then(() => {
+      // Unmuted autoplay succeeded!
+      unmutePrompt.style.display = 'none';
+      muteBtn.textContent = '🔊';
+      playPauseBtn.textContent = '⏸';
+    }).catch(() => {
+      // Browser blocked unmuted autoplay - fallback to muted with prompt
+      diwaliClip.muted = true;
+      muteBtn.textContent = '🔇';
+      unmutePrompt.style.display = 'flex';
+      diwaliClip.play().then(() => {
+        playPauseBtn.textContent = '⏸';
+      }).catch(err => console.log('Video play error:', err));
+    });
+  }
+}
+
+function handleUnmute() {
+  diwaliClip.muted = false;
+  diwaliClip.volume = 1;
+  unmutePrompt.style.display = 'none';
+  muteBtn.textContent = '🔊';
+}
+unmutePrompt.addEventListener('click', handleUnmute);
+
+playPauseBtn.addEventListener('click', () => {
+  if (diwaliClip.paused || diwaliClip.ended) {
+    if (diwaliClip.ended) videoEndOverlay.classList.remove('visible');
+    diwaliClip.play();
+    playPauseBtn.textContent = '⏸';
+  } else {
+    diwaliClip.pause();
+    playPauseBtn.textContent = '▶';
+  }
+});
+
+muteBtn.addEventListener('click', () => {
+  diwaliClip.muted = !diwaliClip.muted;
+  muteBtn.textContent = diwaliClip.muted ? '🔇' : '🔊';
+  if (!diwaliClip.muted) unmutePrompt.style.display = 'none';
+});
+
+diwaliClip.addEventListener('click', () => {
+  if (diwaliClip.muted) {
+    handleUnmute();
+  } else {
+    if (diwaliClip.paused) {
+      diwaliClip.play();
+      playPauseBtn.textContent = '⏸';
+    } else {
+      diwaliClip.pause();
+      playPauseBtn.textContent = '▶';
+    }
+  }
+});
+
+diwaliClip.addEventListener('timeupdate', () => {
+  const current = diwaliClip.currentTime || 0;
+  const total = diwaliClip.duration || 17.4;
+  const percent = total > 0 ? (current / total) * 100 : 0;
+  progressBar.style.width = percent + '%';
+  
+  const curM = Math.floor(current / 60);
+  const curS = Math.floor(current % 60).toString().padStart(2, '0');
+  const totM = Math.floor(total / 60);
+  const totS = Math.floor(total % 60).toString().padStart(2, '0');
+  timeDisplay.textContent = `${curM}:${curS} / ${totM}:${totS}`;
+});
+
+progressContainer.addEventListener('click', (e) => {
+  const rect = progressContainer.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const width = rect.width;
+  if (width > 0 && diwaliClip.duration) {
+    diwaliClip.currentTime = (clickX / width) * diwaliClip.duration;
+  }
+});
+
+fullscreenBtn.addEventListener('click', () => {
+  const wrapper = document.querySelector('.video-wrapper');
+  if (!document.fullscreenElement) {
+    if (wrapper.requestFullscreen) wrapper.requestFullscreen();
+    else if (diwaliClip.requestFullscreen) diwaliClip.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+  }
+});
+
+diwaliClip.addEventListener('ended', () => {
+  videoEndOverlay.classList.add('visible');
+  playPauseBtn.textContent = '▶';
+});
+
+replayBtn.addEventListener('click', () => {
+  videoEndOverlay.classList.remove('visible');
+  diwaliClip.currentTime = 0;
+  diwaliClip.play();
+  playPauseBtn.textContent = '⏸';
+});
+
+function closeVideo() {
+  diwaliClip.pause();
+  videoModal.classList.remove('active');
+  videoModal.setAttribute('aria-hidden', 'true');
+}
+closeVideoBtn.addEventListener('click', closeVideo);
+videoBackdrop.addEventListener('click', closeVideo);
+backToGreetingBtn.addEventListener('click', closeVideo);
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && videoModal.classList.contains('active')) {
+    closeVideo();
+  }
+});
+
+let autoTriggerTimeout = null;
+watchBtn.addEventListener('click', () => {
+  if (autoTriggerTimeout) clearTimeout(autoTriggerTimeout);
+  openAndPlayVideo();
+});
+
+/* Trigger video automatically once initial wishes & fireworks have completed (~6s) */
+const WISHES_COMPLETION_TIME = 6000;
+autoTriggerTimeout = setTimeout(() => {
+  if (!videoModal.classList.contains('active')) {
+    openAndPlayVideo();
+  }
+}, WISHES_COMPLETION_TIME);
+
 </script>
 </body>
 </html>

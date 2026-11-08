@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Diwali 🪔</title>
+<meta property="og:title" content="Happy Diwali! 🪔">
+<meta property="og:description" content="Open this link for a Diwali greeting made just for you.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Mukta:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#140B2E; --plum:#2A1250; --marigold:#FFB627;
+    --rani:#E4457A; --flame:#FF7A1A; --ivory:#FFF4DC;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{height:100%}
+  body{
+    font-family:'Mukta',system-ui,sans-serif;color:var(--ivory);
+    background:radial-gradient(ellipse at 50% 100%,var(--plum),var(--night) 70%);
+    overflow-x:hidden;
+  }
+  /* Optional background video: put video.mp4 next to index.html */
+  #bg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.55}
+  .shade{position:fixed;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(20,11,46,.55),rgba(20,11,46,.85))}
+  canvas{position:fixed;inset:0;z-index:2;pointer-events:none}
+  main{
+    position:relative;z-index:3;min-height:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:2rem 1.25rem;gap:1.5rem;
+  }
+  h1{
+    font-family:'Yatra One',serif;font-weight:400;
+    font-size:clamp(2.6rem,11vw,6rem);line-height:1.1;
+    color:var(--marigold);text-shadow:0 0 28px rgba(255,182,39,.45);
+    animation:rise 1.4s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .sub{font-size:clamp(1.1rem,4vw,1.6rem);color:var(--ivory);animation:rise 1.4s .3s cubic-bezier(.2,.8,.2,1) both}
+  .to{font-family:'Yatra One',serif;font-size:clamp(1.4rem,5vw,2.2rem);color:var(--rani)}
+  .msg{max-width:34rem;font-size:clamp(1rem,3.6vw,1.2rem);line-height:1.7;animation:rise 1.4s .6s cubic-bezier(.2,.8,.2,1) both}
+  .from{font-weight:600;color:var(--marigold)}
+  button{
+    font:inherit;font-weight:600;cursor:pointer;color:var(--night);
+    background:var(--marigold);border:0;border-radius:999px;padding:.75rem 1.6rem;
+    box-shadow:0 0 0 0 rgba(255,182,39,.6);
+  }
+  button:hover{background:#ffc552}
+  button:focus-visible{outline:3px solid var(--ivory);outline-offset:3px}
+  @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+  /* Diyas */
+  .diyas{display:flex;gap:clamp(.6rem,3vw,1.6rem);align-items:flex-end;margin-top:.5rem}
+  .diya{position:relative;width:clamp(42px,12vw,70px);height:clamp(26px,7.5vw,42px)}
+  .bowl{
+    position:absolute;inset:auto 0 0 0;height:100%;
+    background:linear-gradient(#d9742a,#8a3a12);
+    border-radius:0 0 100px 100px / 0 0 100% 100%;
+  }
+  .bowl::before{ /* oil */
+    content:"";position:absolute;left:8%;right:8%;top:0;height:22%;
+    background:#ffd27a;border-radius:50%;
+  }
+  .flame{
+    position:absolute;left:50%;bottom:78%;width:34%;height:150%;
+    transform:translateX(-50%) scale(0);transform-origin:50% 100%;
+    background:radial-gradient(ellipse at 50% 75%,#fff6c4 0 18%,var(--marigold) 45%,var(--flame) 75%,transparent 76%);
+    border-radius:50% 50% 50% 50% / 62% 62% 38% 38%;
+    filter:drop-shadow(0 0 14px var(--flame));
+    transition:transform .8s cubic-bezier(.3,1.4,.5,1);
+  }
+  .lit .flame{transform:translateX(-50%) scale(1);animation:flicker 1.6s ease-in-out infinite alternate}
+  @keyframes flicker{
+    0%{transform:translateX(-50%) scale(1,1) rotate(-2deg)}
+    50%{transform:translateX(-50%) scale(.94,1.06) rotate(2deg)}
+    100%{transform:translateX(-50%) scale(1.04,.96) rotate(-1deg)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .flame{transform:translateX(-50%) scale(1)}
+  }
+</style>
+</head>
+<body>
+
+<!-- Optional video background. Add a file named video.mp4 in the same folder. -->
+<video id="bg" autoplay muted loop playsinline aria-hidden="true">
+  <source src="video.mp4" type="video/mp4">
+</video>
+<div class="shade"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<main>
+  <div class="diyas" id="diyas" aria-hidden="true"></div>
+  <h1>शुभ दीपावली</h1>
+  <p class="sub">Happy Diwali!</p>
+  <p class="to" id="to"></p>
+  <p class="msg" id="msg"></p>
+  <button id="burst" type="button">Light up the sky</button>
+</main>
+
+<script>
+/* ===== EDIT THESE ===== */
+const DEFAULT_MESSAGE =
+  "May the light of the diya fill your home with happiness, your heart with peace, " +
+  "and your year with success. Wishing you and your family a bright and joyful Diwali!";
+const DEFAULT_FROM = "Your Name";   // change to your name
+/* Personalised link example:  https://your-site.vercel.app/?name=Rahul&from=Amit */
+/* ====================== */
+
+const q = new URLSearchParams(location.search);
+const name = (q.get('name') || '').trim().slice(0, 40);
+const from = (q.get('from') || DEFAULT_FROM).trim().slice(0, 40);
+
+const toEl = document.getElementById('to');
+if (name) toEl.textContent = 'Dear ' + name + ',';
+
+const msgEl = document.getElementById('msg');
+msgEl.textContent = DEFAULT_MESSAGE + ' ';
+const sig = document.createElement('span');
+sig.className = 'from';
+sig.textContent = '— ' + from;
+msgEl.appendChild(document.createElement('br'));
+msgEl.appendChild(sig);
+document.title = name ? 'Happy Diwali, ' + name + '! 🪔' : 'Happy Diwali 🪔';
+
+/* Hide video block if the file is missing */
+const bg = document.getElementById('bg');
+bg.addEventListener('error', () => bg.style.display = 'none', true);
+bg.querySelector('source').addEventListener('error', () => bg.style.display = 'none');
+
+/* Diyas light up one by one on load */
+const diyas = document.getElementById('diyas');
+for (let i = 0; i < 5; i++) {
+  const d = document.createElement('div');
+  d.className = 'diya';
+  d.innerHTML = '<div class="flame"></div><div class="bowl"></div>';
+  diyas.appendChild(d);
+  setTimeout(() => d.classList.add('lit'), 900 + i * 350);
+}
+
+/* Fireworks */
+const cv = document.getElementById('fx'), ctx = cv.getContext('2d');
+let W, H, parts = [];
+function resize(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
+addEventListener('resize', resize); resize();
+const colors = ['#FFB627','#E4457A','#FF7A1A','#FFF4DC','#7ED6C4'];
+
+function boom(x, y){
+  const c = colors[Math.floor(Math.random()*colors.length)];
+  for (let i = 0; i < 70; i++){
+    const a = Math.random()*Math.PI*2, s = 1 + Math.random()*4.5;
+    parts.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, life:1, c});
+  }
+}
+function loop(){
+  ctx.clearRect(0, 0, W, H);
+  parts = parts.filter(p => p.life > 0);
+  for (const p of parts){
+    p.x += p.vx; p.y += p.vy; p.vy += .04; p.vx *= .985; p.life -= .014;
+    ctx.globalAlpha = Math.max(p.life, 0);
+    ctx.fillStyle = p.c;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, 6.283); ctx.fill();
+  }
+  requestAnimationFrame(loop);
+}
+loop();
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function show(){
+  for (let i = 0; i < 5; i++)
+    setTimeout(() => boom(W*(.15+Math.random()*.7), H*(.12+Math.random()*.4)), i*350);
+}
+document.getElementById('burst').addEventListener('click', show);
+addEventListener('pointerdown', e => { if (e.target.tagName !== 'BUTTON') boom(e.clientX, e.clientY); });
+if (!reduce) setTimeout(show, 2800);
+</script>
+</body>
+</html>
